@@ -3,7 +3,6 @@ package group.aelysium.rustyconnector.modules.mysql;
 import group.aelysium.declarative_yaml.DeclarativeYAML;
 import group.aelysium.declarative_yaml.annotations.*;
 import group.aelysium.declarative_yaml.lib.Printer;
-import group.aelysium.rustyconnector.common.haze.HazeDatabase;
 import group.aelysium.rustyconnector.common.modules.ModuleTinder;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,11 +32,18 @@ public class DatabaseConfig {
     @PathParameter("name")
     private String name;
 
-    protected final String address = "127.0.0.1";
-    protected final int port = 3306;
-    protected final String username = "root";
-    protected final String password = "admin";
-    protected final int maxPoolSize = 100;
+    @Node(0)
+    private String address = "127.0.0.1";
+    @Node(1)
+    private int port = 3306;
+    @Node(2)
+    private String username = "root";
+    @Node(3)
+    private String password = "admin";
+    @Node(4)
+    private int maxPoolSize = 100;
+    @Node(5)
+    private boolean ssl = false;
 
     public @NotNull ModuleTinder<? extends MySQLDatabase> tinder() {
         MySQLDatabase.Tinder tinder = new MySQLDatabase.Tinder(

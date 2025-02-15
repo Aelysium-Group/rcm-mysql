@@ -22,8 +22,9 @@ dependencies {
     compileOnly files("./libs/declarative-yaml-0.2.0.jar")
     compileOnly files("./libs/rustyconnector-core-0.9.0.jar")
 
-    implementation 'com.mysql:mysql-connector-j:8.1.0'
-    implementation 'com.zaxxer:HikariCP:5.0.0'
+    shadow 'com.mysql:mysql-connector-j:9.2.0'
+    shadow 'com.zaxxer:HikariCP:5.0.0'
+    compileOnly 'net.kyori:adventure-api:4.17.0'
 }
 
 java {
@@ -31,16 +32,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
     withJavadocJar()
     withSourcesJar()
-}
-
-processResources {
-    def props = ["version": module_version]
-    inputs.properties props
-    filteringCharset "UTF-8"
-
-    filesMatching("rc-module.json") {
-        expand props
-    }
 }
 
 compileJava {
@@ -55,7 +46,11 @@ shadowJar {
     archiveBaseName.set(archives_base_name)
     archiveClassifier.set('')
     mergeServiceFiles()
-    relocate 'org.reflections', 'group.aelysium.rustyconnector.shaded.org.reflections'
+
+    //relocate "com.mysql", "group.aelysium.rustyconnector.modules.mysql.shaded.com.mysql"
+    relocate "com.zaxxer", "group.aelysium.rustyconnector.modules.mysql.shaded.com.zaxxer"
+
+    configurations = [project.configurations.shadow]
 }
 
 tasks.named('jar').configure {
@@ -67,5 +62,9 @@ tasks.withType(JavaCompile) {
 tasks.withType(Javadoc) {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
+tasks.build {
+    dependsOn shadowJar
+}
+
 
 jar.finalizedBy(shadowJar)

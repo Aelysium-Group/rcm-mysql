@@ -4,22 +4,21 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import group.aelysium.rustyconnector.common.haze.HazeDatabase;
+import group.aelysium.rustyconnector.common.modules.ModuleParticle;
 import group.aelysium.rustyconnector.common.modules.ModuleTinder;
 import group.aelysium.rustyconnector.modules.mysql.requests.*;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeCastingException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.DataHolder;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.DataKey;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.*;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.StringJoiner;
 
-public class MySQLDatabase extends HazeDatabase {
+public class MySQLDatabase extends HazeDatabase implements ModuleParticle {
     protected final HikariDataSource dataSource;
     protected final String address;
     protected final int port;
@@ -34,19 +33,25 @@ public class MySQLDatabase extends HazeDatabase {
         @NotNull String username,
         @NotNull String password,
         int poolSize
-    ) {
+    ) throws SQLException {
         super(database, Type.TABULAR);
         this.address = address;
         this.port = port;
         this.username = username;
         this.password = password;
         this.poolSize = poolSize;
-
+        
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch(Exception ignore) {}
+        
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://"+this.address+":"+this.port+"/"+this.name);
         config.setUsername(this.username);
         config.setPassword(this.password);
         config.setMaximumPoolSize(this.poolSize);
+        config.addDataSourceProperty("useSSL", "false");
+        config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
         this.dataSource = new HikariDataSource(config);
     }
 
@@ -79,17 +84,18 @@ public class MySQLDatabase extends HazeDatabase {
         String tableName = dataHolder.name();
         StringJoiner columnDefinitions = new StringJoiner(", ");
 
-        // Add default primary key column
-        columnDefinitions.add("id INT AUTO_INCREMENT PRIMARY KEY");
+        if(dataHolder.keys().values().stream().noneMatch(group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Type::primaryKey))
+            columnDefinitions.add("id INT AUTO_INCREMENT PRIMARY KEY");
 
-        dataHolder.keys().forEach(d -> {
+        dataHolder.keys().forEach((k, v) -> {
             StringBuilder columnDefinition = new StringBuilder();
-            columnDefinition.append(d.name())
+            columnDefinition.append(k)
                     .append(" ")
-                    .append(getMySQLType(d));
+                    .append(getMySQLType(v));
 
-            if (!d.nullable()) columnDefinition.append(" NOT NULL");
-            if (d.unique()) columnDefinition.append(" UNIQUE");
+            if (!v.nullable()) columnDefinition.append(" NOT NULL");
+            if (v.unique()) columnDefinition.append(" UNIQUE");
+            if (v.primaryKey()) columnDefinition.append(" PRIMARY KEY");
 
             columnDefinitions.add(columnDefinition.toString());
         });
@@ -106,7 +112,7 @@ public class MySQLDatabase extends HazeDatabase {
         }
     }
 
-    private String getMySQLType(DataKey key) {
+    private String getMySQLType(group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Type key) {
         return switch (key.type()) {
             case STRING -> {
                 if (key.length() == -1) yield "VARCHAR(n)";  // Use 255 for unlimited length varchar
@@ -140,7 +146,7 @@ public class MySQLDatabase extends HazeDatabase {
     @Override
     public boolean doesDataHolderExist(@NotNull String target) throws HazeException {
         try(Connection connection = this.dataSource.getConnection()) {
-            PreparedStatement statement = connection.prepareStatement("SELECT CASE WHEN EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ? ) THEN 1 ELSE 0 END AS [exists];");
+            PreparedStatement statement = connection.prepareStatement("SELECT CASE WHEN EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ? ) THEN 1 ELSE 0 END AS doesExist;");
             statement.setString(1, target);
             try(ResultSet result = statement.executeQuery()) {
                 if(!result.next()) throw new HazeException("Unable to tell if the table `"+target+"` exists. No response was received.");
@@ -166,7 +172,13 @@ public class MySQLDatabase extends HazeDatabase {
 
     @Override
     public void close() throws Exception {
+        System.out.println("HikariDataSource is being closed.");
         this.dataSource.close();
+    }
+
+    @Override
+    public @Nullable Component details() {
+        return null;
     }
 
     public static class Tinder extends ModuleTinder<MySQLDatabase> {
@@ -184,7 +196,7 @@ public class MySQLDatabase extends HazeDatabase {
                 @NotNull String username,
                 @NotNull String password
         ) {
-            super(database, "A MySQL Database.", "rustyconnector-haze-databaseDetails");
+            super(database, "A MySQL Database.");
             this.database = database;
             this.address = address;
             this.port = port;

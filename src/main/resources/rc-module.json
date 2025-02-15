@@ -2,6 +2,6 @@
   "main": "group.aelysium.rustyconnector.modules.mysql.RCMHazeMySQLDriver$Tinder",
   "name": "Haze",
   "description": "Provides MySQL driver functionalities for the Haze controller.",
-  "details": "rustyconnector-mysqlDetails",
-  "dependencies": []
+  "dependencies": [],
+  "environments": [ "proxy", "server" ]
 }
