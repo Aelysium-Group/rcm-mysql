@@ -63,11 +63,10 @@ public class MySQLReadRequest extends ReadRequest {
                         Object value = resultSet.getObject(i);
                         rows.put(columnName, value);
                     }
-                    Gson gson = new GsonBuilder().create();
-                    String jsonString = gson.toJson(rows);
+                    String jsonString = MySQLDatabase.gson.toJson(rows);
 
                     try {
-                        response.add(gson.fromJson(jsonString, clazz));
+                        response.add(MySQLDatabase.gson.fromJson(jsonString, clazz));
                     } catch (JsonSyntaxException e) {
                         throw new HazeCastingException("Unable to deserialize the response from "+this.target+". "+e.getMessage());
                     }
