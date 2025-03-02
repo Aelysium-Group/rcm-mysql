@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import group.aelysium.rustyconnector.common.haze.HazeDatabase;
-import group.aelysium.rustyconnector.common.modules.ModuleParticle;
+import group.aelysium.rustyconnector.common.modules.Module;
 import group.aelysium.rustyconnector.modules.mysql.lib.LocalDateTimeSerializer;
 import group.aelysium.rustyconnector.modules.mysql.requests.*;
 import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.Gson;
@@ -21,7 +21,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
-public class MySQLDatabase extends HazeDatabase implements ModuleParticle {
+public class MySQLDatabase extends HazeDatabase implements Module {
     public static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
         .create();

@@ -3,12 +3,13 @@ package group.aelysium.rustyconnector.modules.mysql;
 import group.aelysium.rustyconnector.common.haze.HazeDatabase;
 import group.aelysium.rustyconnector.common.haze.HazeProvider;
 import group.aelysium.rustyconnector.common.modules.ExternalModuleBuilder;
-import group.aelysium.rustyconnector.common.modules.ModuleBuilder;
+import group.aelysium.rustyconnector.common.modules.Module;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public class RCMHazeMySQLDriver extends HazeProvider {
     public RCMHazeMySQLDriver() {
@@ -38,7 +39,7 @@ public class RCMHazeMySQLDriver extends HazeProvider {
     }
     
     @Override
-    public void registerDatabase(@NotNull ModuleBuilder<HazeDatabase> database) throws Exception {
+    public void registerDatabase(@NotNull Module.Builder<HazeDatabase> database) throws Exception {
         this.databases.registerModule(database);
     }
 
@@ -50,7 +51,7 @@ public class RCMHazeMySQLDriver extends HazeProvider {
     public static class Builder extends ExternalModuleBuilder<RCMHazeMySQLDriver> {
         @NotNull
         @Override
-        public RCMHazeMySQLDriver onStart() throws Exception {
+        public RCMHazeMySQLDriver onStart(@NotNull Path dataDirectory) throws Exception {
             return new RCMHazeMySQLDriver();
         }
     }

@@ -16,10 +16,12 @@ version = module_version
 
 repositories {
     mavenCentral()
+    maven { url = "https://maven.mrnavastar.me/snapshots/" }
+    maven { url = "https://maven.mrnavastar.me/releases/" }
 }
 
 dependencies {
-    compileOnly files("./libs/rustyconnector-core-0.9.0.jar")
+    compileOnly 'group.aelysium:rustyconnector-core:0.9.5'
 
     shadow 'com.mysql:mysql-connector-j:9.2.0'
     shadow 'com.zaxxer:HikariCP:5.0.0'
