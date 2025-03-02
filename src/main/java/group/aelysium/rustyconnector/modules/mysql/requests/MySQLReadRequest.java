@@ -2,8 +2,6 @@ package group.aelysium.rustyconnector.modules.mysql.requests;
 
 import group.aelysium.rustyconnector.modules.mysql.MySQLDatabase;
 import group.aelysium.rustyconnector.modules.mysql.lib.MySQLFilterable;
-import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.Gson;
-import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.GsonBuilder;
 import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.JsonSyntaxException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeCastingException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeException;

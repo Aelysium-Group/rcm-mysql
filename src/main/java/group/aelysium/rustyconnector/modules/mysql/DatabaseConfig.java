@@ -1,11 +1,15 @@
 package group.aelysium.rustyconnector.modules.mysql;
 
-import group.aelysium.declarative_yaml.DeclarativeYAML;
-import group.aelysium.declarative_yaml.annotations.*;
-import group.aelysium.declarative_yaml.lib.Printer;
-import group.aelysium.rustyconnector.common.modules.ModuleTinder;
+import group.aelysium.rustyconnector.RC;
+import group.aelysium.rustyconnector.common.errors.Error;
+import group.aelysium.rustyconnector.common.haze.HazeDatabase;
+import group.aelysium.rustyconnector.common.modules.ModuleBuilder;
+import group.aelysium.rustyconnector.shaded.group.aelysium.declarative_yaml.DeclarativeYAML;
+import group.aelysium.rustyconnector.shaded.group.aelysium.declarative_yaml.annotations.*;
+import group.aelysium.rustyconnector.shaded.group.aelysium.declarative_yaml.lib.Printer;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 @Namespace("rustyconnector-modules")
@@ -45,17 +49,25 @@ public class DatabaseConfig {
     @Node(5)
     private boolean ssl = false;
 
-    public @NotNull ModuleTinder<? extends MySQLDatabase> tinder() {
-        MySQLDatabase.Tinder tinder = new MySQLDatabase.Tinder(
-                name,
-                this.address,
-                this.port,
-                this.username,
-                this.password
-        );
-        tinder.poolSize(this.maxPoolSize);
-
-        return tinder;
+    public @NotNull ModuleBuilder<HazeDatabase> builder() {
+        return new ModuleBuilder<>(name, "A MySQL connection that connects to the database " + name + ".") {
+            @Override
+            public MySQLDatabase get() {
+                try {
+                    return new MySQLDatabase(
+                        name,
+                        address,
+                        port,
+                        username,
+                        password,
+                        maxPoolSize
+                    );
+                } catch (SQLException e) {
+                    RC.Error(Error.from(e).urgent(true).whileAttempting("To initialize the mysql connection."));
+                }
+                return null;
+            }
+        };
     }
 
     public static DatabaseConfig New(@NotNull String name) {

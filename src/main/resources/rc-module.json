@@ -1,5 +1,5 @@
 {
-  "main": "group.aelysium.rustyconnector.modules.mysql.RCMHazeMySQLDriver$Tinder",
+  "main": "group.aelysium.rustyconnector.modules.mysql.RCMHazeMySQLDriver$Builder",
   "name": "Haze",
   "description": "Provides MySQL driver functionalities for the Haze controller.",
   "dependencies": [],

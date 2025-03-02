@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import group.aelysium.rustyconnector.common.haze.HazeDatabase;
 import group.aelysium.rustyconnector.common.modules.ModuleParticle;
-import group.aelysium.rustyconnector.common.modules.ModuleTinder;
 import group.aelysium.rustyconnector.modules.mysql.lib.LocalDateTimeSerializer;
 import group.aelysium.rustyconnector.modules.mysql.requests.*;
 import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.Gson;
@@ -33,7 +32,7 @@ public class MySQLDatabase extends HazeDatabase implements ModuleParticle {
     protected final String password;
     protected final int poolSize;
 
-    protected MySQLDatabase(
+    public MySQLDatabase(
         @NotNull String database,
         @NotNull String address,
         int port,
@@ -186,47 +185,5 @@ public class MySQLDatabase extends HazeDatabase implements ModuleParticle {
     @Override
     public @Nullable Component details() {
         return null;
-    }
-
-    public static class Tinder extends ModuleTinder<MySQLDatabase> {
-        protected final String database;
-        protected final String address;
-        protected final int port;
-        protected final String username;
-        protected final String password;
-        protected int poolSize;
-
-        public Tinder(
-                @NotNull String database,
-                @NotNull String address,
-                int port,
-                @NotNull String username,
-                @NotNull String password
-        ) {
-            super(database, "A MySQL Database.");
-            this.database = database;
-            this.address = address;
-            this.port = port;
-            this.username = username;
-            this.password = password;
-        }
-
-        public Tinder poolSize(int poolSize) {
-            this.poolSize = poolSize;
-            return this;
-        }
-
-        @NotNull
-        @Override
-        public MySQLDatabase ignite() throws Exception {
-            return new MySQLDatabase(
-                    this.database,
-                    this.address,
-                    this.port,
-                    this.username,
-                    this.password,
-                    this.poolSize
-            );
-        }
     }
 }
