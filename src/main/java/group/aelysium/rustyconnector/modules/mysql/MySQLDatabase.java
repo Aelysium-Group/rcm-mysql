@@ -20,11 +20,14 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MySQLDatabase extends HazeDatabase implements Module {
     public static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
         .create();
+    
+    protected final AtomicBoolean closed = new AtomicBoolean(false);
     protected final HikariDataSource dataSource;
     protected final String address;
     protected final int port;
@@ -56,6 +59,8 @@ public class MySQLDatabase extends HazeDatabase implements Module {
         config.setUsername(this.username);
         config.setPassword(this.password);
         config.setMaximumPoolSize(this.poolSize);
+        config.setLeakDetectionThreshold(2000);
+        config.setConnectionTimeout(60000);
         config.addDataSourceProperty("useSSL", "false");
         config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
         this.dataSource = new HikariDataSource(config);
@@ -67,26 +72,36 @@ public class MySQLDatabase extends HazeDatabase implements Module {
 
     @Override
     public CreateRequest newCreateRequest(@NotNull String target) {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         return new MySQLCreateRequest(this, target);
     }
 
     @Override
     public ReadRequest newReadRequest(@NotNull String target) {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         return new MySQLReadRequest(this, target);
     }
 
     @Override
     public UpdateRequest newUpdateRequest(@NotNull String target) {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         return new MySQLUpdateRequest(this, target);
     }
 
     @Override
     public DeleteRequest newDeleteRequest(@NotNull String target) {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         return new MySQLDeleteRequest(this, target);
     }
 
     @Override
     public void createDataHolder(@NotNull DataHolder dataHolder) throws HazeException {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         String tableName = dataHolder.name();
         StringJoiner columnDefinitions = new StringJoiner(", ");
 
@@ -119,6 +134,8 @@ public class MySQLDatabase extends HazeDatabase implements Module {
     }
 
     private String getMySQLType(group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Type key) {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         return switch (key.type()) {
             case STRING -> {
                 if (key.length() == -1) yield "VARCHAR(n)";  // Use 255 for unlimited length varchar
@@ -151,6 +168,8 @@ public class MySQLDatabase extends HazeDatabase implements Module {
 
     @Override
     public boolean doesDataHolderExist(@NotNull String target) throws HazeException {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         try(Connection connection = this.dataSource.getConnection()) {
             PreparedStatement statement = connection.prepareStatement("SELECT CASE WHEN EXISTS ( SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ? ) THEN 1 ELSE 0 END AS doesExist;");
             statement.setString(1, target);
@@ -167,6 +186,8 @@ public class MySQLDatabase extends HazeDatabase implements Module {
 
     @Override
     public void deleteDataHolder(@NotNull String target) throws HazeException {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
         try(Connection connection = this.dataSource.getConnection()) {
             PreparedStatement statement = connection.prepareStatement("DROP TABLE ?;");
             statement.setString(1, target);
@@ -178,7 +199,10 @@ public class MySQLDatabase extends HazeDatabase implements Module {
 
     @Override
     public void close() throws Exception {
-        System.out.println("HikariDataSource is being closed.");
+        System.out.println("HikariDataSource is being closed. This tends to take a while.");
+        
+        this.closed.set(true);
+        this.dataSource.getHikariPoolMXBean().softEvictConnections();
         this.dataSource.close();
     }
 
