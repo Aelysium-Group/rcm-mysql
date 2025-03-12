@@ -1,12 +1,13 @@
 package group.aelysium.rustyconnector.modules.mysql.requests;
 
 import group.aelysium.rustyconnector.modules.mysql.MySQLDatabase;
-import group.aelysium.rustyconnector.modules.mysql.lib.MySQLFilterable;
+import group.aelysium.rustyconnector.modules.mysql.lib.Converter;
 import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.JsonSyntaxException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeCastingException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeException;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filterable;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.ReadRequest;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filter;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.KeyValue;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.requests.ReadRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -20,8 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class MySQLReadRequest extends ReadRequest {
-    protected MySQLFilterable filters = new MySQLFilterable();
-
     public MySQLReadRequest(
             @NotNull MySQLDatabase database,
             @NotNull String target
@@ -29,28 +28,27 @@ public class MySQLReadRequest extends ReadRequest {
         super(database, target);
     }
 
-    public Filterable filters() {
-        return this.filters;
-    }
-
     @Override
     public <T> @NotNull Set<T> execute(Class<T> clazz) throws Exception {
-        StringBuilder query = new StringBuilder("SELECT * FROM ").append(target);
-
-        query.append(this.filters.toWhereClause());
-        query.append(this.filters.toGroupByClause());
-        query.append(this.filters.toOrderByClause());
+        String query = "SELECT * FROM " + target +
+            Converter.convert(this.filter) +
+            Converter.convert(this.orderBy) +
+            Converter.convert(this.startAt, this.endAt);
 
         try (
                 Connection connection = ((MySQLDatabase) this.database).dataSource().getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(query.toString())
+                PreparedStatement preparedStatement = connection.prepareStatement(query)
         ) {
-            if (!filters.filterBy().isEmpty()) {
+            if (this.filter != null) {
+                this.filter.resetPointer();
+                
                 int index = 1;
-                for (Filterable.KeyValue<String, Filterable.FilterValue> filter : filters.filterBy())
-                    preparedStatement.setObject(index++, filter.value().value());
+                while (this.filter.next()) {
+                    KeyValue<Filter.Operator, KeyValue<String, Filter.Value>> entry = this.filter.get();
+                    preparedStatement.setObject(index++, entry.value().value().value());
+                }
             }
-
+            
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 Set<T> response = new HashSet<>();
                 while (resultSet.next()) {

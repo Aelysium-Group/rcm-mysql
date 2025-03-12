@@ -12,7 +12,7 @@ import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.GsonBuilde
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeCastingException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeException;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.DataHolder;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.*;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.requests.*;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

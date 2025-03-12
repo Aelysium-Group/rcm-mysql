@@ -1,27 +1,22 @@
 package group.aelysium.rustyconnector.modules.mysql.requests;
 
 import group.aelysium.rustyconnector.modules.mysql.MySQLDatabase;
-import group.aelysium.rustyconnector.modules.mysql.lib.MySQLFilterable;
+import group.aelysium.rustyconnector.modules.mysql.lib.Converter;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeException;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filterable;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.UpdateRequest;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filter;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.KeyValue;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.requests.UpdateRequest;
 import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class MySQLUpdateRequest extends UpdateRequest {
-    protected MySQLFilterable filters = new MySQLFilterable();
-
     public MySQLUpdateRequest(
             @NotNull MySQLDatabase database,
             @NotNull String target
     ) {
         super(database, target);
-    }
-
-    public Filterable filters() {
-        return this.filters;
     }
 
     @Override
@@ -35,7 +30,7 @@ public class MySQLUpdateRequest extends UpdateRequest {
             first = false;
         }
 
-        query.append(filters.toWhereClause());
+        query.append(Converter.convert(this.filter));
 
         try (
                 Connection connection = ((MySQLDatabase) this.database).dataSource().getConnection();
@@ -45,10 +40,15 @@ public class MySQLUpdateRequest extends UpdateRequest {
 
             for (Object value : parameters.values())
                 preparedStatement.setObject(index++, value);
-
-            if (!filters.filterBy().isEmpty())
-                for (Filterable.KeyValue<String, Filterable.FilterValue> filter : filters.filterBy())
-                    preparedStatement.setObject(index++, filter.value().value());
+            
+            if (this.filter != null) {
+                this.filter.resetPointer();
+                
+                while (this.filter.next()) {
+                    KeyValue<Filter.Operator, KeyValue<String, Filter.Value>> entry = this.filter.get();
+                    preparedStatement.setObject(index++, entry.value().value().value());
+                }
+            }
 
             return preparedStatement.executeUpdate();
         } catch (SQLException e) {

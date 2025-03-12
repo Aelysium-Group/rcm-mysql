@@ -2,7 +2,7 @@ package group.aelysium.rustyconnector.modules.mysql.requests;
 
 import group.aelysium.rustyconnector.modules.mysql.MySQLDatabase;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.exceptions.HazeException;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.CreateRequest;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.requests.CreateRequest;
 import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
