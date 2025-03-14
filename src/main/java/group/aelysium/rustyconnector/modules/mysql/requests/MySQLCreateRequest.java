@@ -19,7 +19,7 @@ public class MySQLCreateRequest extends CreateRequest {
 
     @Override
     public long execute() throws Exception {
-        if (parameters.isEmpty()) throw new HazeException("Parameters cannot be empty for an INSERT operation.");
+        if (parameters.isEmpty()) throw new HazeException("Parameters cannot be empty for an UPSERT operation.");
 
         StringBuilder columns = new StringBuilder();
         StringBuilder values = new StringBuilder();

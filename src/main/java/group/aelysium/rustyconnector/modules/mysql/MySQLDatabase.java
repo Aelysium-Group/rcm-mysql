@@ -90,7 +90,14 @@ public class MySQLDatabase extends HazeDatabase implements Module {
         
         return new MySQLUpdateRequest(this, target);
     }
-
+    
+    @Override
+    public UpsertRequest newUpsertRequest(@NotNull String target) {
+        if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
+        
+        return new MySQLUpsertRequest(this, target);
+    }
+    
     @Override
     public DeleteRequest newDeleteRequest(@NotNull String target) {
         if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
