@@ -90,11 +90,11 @@ public class MySQLDatabase extends HazeDatabase implements Module {
         
         return new MySQLUpdateRequest(this, target);
     }
-    
+
     @Override
     public UpsertRequest newUpsertRequest(@NotNull String target) {
         if(this.closed.get()) throw new HazeException("This HazeDatabase connection is closed.");
-        
+
         return new MySQLUpsertRequest(this, target);
     }
     
@@ -118,8 +118,8 @@ public class MySQLDatabase extends HazeDatabase implements Module {
         dataHolder.keys().forEach((k, v) -> {
             StringBuilder columnDefinition = new StringBuilder();
             columnDefinition.append(k)
-                    .append(" ")
-                    .append(getMySQLType(v));
+                .append(" ")
+                .append(getMySQLType(v));
 
             if (!v.nullable()) columnDefinition.append(" NOT NULL");
             if (v.unique()) columnDefinition.append(" UNIQUE");
@@ -131,8 +131,8 @@ public class MySQLDatabase extends HazeDatabase implements Module {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + columnDefinitions + ")";
 
         try (
-                Connection connection = this.dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(createTableSQL)
+            Connection connection = this.dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(createTableSQL)
         ) {
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
@@ -156,9 +156,20 @@ public class MySQLDatabase extends HazeDatabase implements Module {
                 if (key.length() <= 8) yield "BIGINT";
                 yield "INT";
             }
+            case UNSIGNED_INTEGER -> {
+                if (key.length() == 1) yield "UNSIGNED TINYINT";
+                if (key.length() <= 3) yield "UNSIGNED SMALLINT";
+                if (key.length() <= 5) yield "UNSIGNED MEDIUMINT";
+                if (key.length() <= 8) yield "UNSIGNED BIGINT";
+                yield "UNSIGNED INT";
+            }
             case DECIMAL -> {
                 if (key.length() > 0) yield "DECIMAL(" + key.length() + ", 2)";
                 yield "DECIMAL(10, 2)";
+            }
+            case UNSIGNED_DECIMAL -> {
+                if (key.length() > 0) yield "UNSIGNED DECIMAL(" + key.length() + ", 2)";
+                yield "UNSIGNED DECIMAL(10, 2)";
             }
             case BOOLEAN -> "TINYINT(1)";
             case DATE -> "DATE";
@@ -169,7 +180,6 @@ public class MySQLDatabase extends HazeDatabase implements Module {
                 yield "BLOB";
             }
             case ARRAY, OBJECT -> "varchar(n)";
-            default -> throw new IllegalArgumentException("Unsupported DataType: " + key.type());
         };
     }
 

@@ -37,14 +37,16 @@ public class DatabaseConfig {
     private String name;
 
     @Node(0)
-    private String address = "127.0.0.1";
+    private String database = "database";
     @Node(1)
-    private int port = 3306;
+    private String address = "127.0.0.1";
     @Node(2)
-    private String username = "root";
+    private int port = 3306;
     @Node(3)
-    private String password = "admin";
+    private String username = "root";
     @Node(4)
+    private String password = "admin";
+    @Node(5)
     private int maxPoolSize = 100;
     
     public @NotNull Module.Builder<HazeDatabase> builder() {
@@ -53,7 +55,7 @@ public class DatabaseConfig {
             public MySQLDatabase get() {
                 try {
                     return new MySQLDatabase(
-                        name,
+                        database,
                         address,
                         port,
                         username,
