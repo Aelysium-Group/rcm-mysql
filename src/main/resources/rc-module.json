@@ -1,5 +1,5 @@
 {
-  "main": "group.aelysium.rustyconnector.modules.mysql.MySQLHazeProvider$Builder",
+  "main": "group.aelysium.rustyconnector.modules.mysql.Builder",
   "name": "Haze-MySQL",
   "description": "Provides MySQL driver functionalities for the Haze provider.",
   "dependencies": [],

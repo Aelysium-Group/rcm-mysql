@@ -19,17 +19,18 @@ public interface Converter {
     }
     
     static @NotNull String convert(@NotNull Filter.Qualifier qualifier) {
-        return switch (qualifier) {
-            case EQUALS -> "=";
-            case NOT_EQUALS -> "!=";
-            case CONTAINS -> "LIKE";
-            case NOT_CONTAINS -> "NOT LIKE";
-            case GREATER_THAN -> ">";
-            case LESS_THAN -> "<";
-            case GREATER_THAN_OR_EQUAL -> ">=";
-            case LESS_THAN_OR_EQUAL -> "<=";
-            case IS_NULL -> "IS NULL";
-            case IS_NOT_NULL -> "IS NOT NULL";
+        return switch (qualifier.value()) {
+            //case "EQUALS" -> "=";
+            case "NOT_EQUALS" -> "!=";
+            case "CONTAINS" -> "LIKE";
+            case "NOT_CONTAINS" -> "NOT LIKE";
+            case "GREATER_THAN" -> ">";
+            case "LESS_THAN" -> "<";
+            case "GREATER_THAN_OR_EQUAL" -> ">=";
+            case "LESS_THAN_OR_EQUAL" -> "<=";
+            case "IS_NULL" -> "IS NULL";
+            case "IS_NOT_NULL" -> "IS NOT NULL";
+            default -> "=";
         };
     }
     
@@ -56,7 +57,7 @@ public interface Converter {
                 .append(convert(filterWith.equality()))
                 .append(" ");
             
-            if (filterWith.equality() == Filter.Qualifier.CONTAINS || filterWith.equality() == Filter.Qualifier.NOT_CONTAINS) {
+            if (filterWith.equality().equals(Filter.CONTAINS) || filterWith.equality().equals(Filter.NOT_CONTAINS)) {
                 clause.append("'%")
                     .append(filterWith.value())
                     .append("%'");
