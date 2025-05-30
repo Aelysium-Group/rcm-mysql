@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'group.aelysium.rustyconnector:core:0.9.15'
+    compileOnly 'group.aelysium.rustyconnector:core:0.9.1'
 
     shadow 'com.mysql:mysql-connector-j:9.2.0'
     shadow 'com.zaxxer:HikariCP:5.0.0'
